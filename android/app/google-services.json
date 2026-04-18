@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "189646696885",
+    "project_id": "bioskop-ac614",
+    "storage_bucket": "bioskop-ac614.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189646696885:android:03de097dccaade031be9fc",
+        "android_client_info": {
+          "package_name": "com.bioskop.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCf0hwZP5OYe7FsEbJVmoCLdyWfnwJA6DQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
