@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/movie.dart';
+import 'seat_selection.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   final Movie movie;
@@ -167,11 +168,13 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                       onPressed: _selectedShowtime == null
                           ? null
                           : () {
-                              // TODO: Navigate ke booking screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Lanjut pesan untuk ${widget.movie.title} jam $_selectedShowtime',
+                              // Navigasi ke halaman pemilihan kursi
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SeatSelection(
+                                    movie: widget.movie,
+                                    showtime: _selectedShowtime!,
                                   ),
                                 ),
                               );
