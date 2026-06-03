@@ -39,16 +39,13 @@ class _SeatSelectionState extends State<SeatSelection> {
   final int _columns = 8;
 
   // Fungsi pembantu untuk mendapatkan warna kursi berdasarkan statusnya
-  Color _getSeatColor(String seatCode, {bool isMinimap = false}) {
+  Color _getSeatColor(String seatCode) {
     if (_occupiedSeats.contains(seatCode)) {
-      // Kursi sudah terisi (merah keabuan lembut)
       return Colors.red.shade300;
     } else if (_selectedSeats.contains(seatCode)) {
-      // Kursi sedang dipilih oleh user (warna primer aplikasi)
       return Theme.of(context).colorScheme.primary;
     } else {
-      // Kursi masih tersedia (abu-abu terang jika minimap, putih bersih bergaris jika utama)
-      return isMinimap ? Colors.grey.shade400 : Colors.white;
+      return Colors.white;
     }
   }
 
@@ -162,33 +159,22 @@ class _SeatSelectionState extends State<SeatSelection> {
 
           const SizedBox(height: 16),
 
-          // 2. Baris Legenda Kursi & Minimap
+          // 2. Baris Legenda Kursi
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Legenda Kursi (Kiri)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Keterangan Kursi:',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildLegendItem(Colors.white, Colors.grey.shade400, 'Tersedia'),
-                      const SizedBox(height: 6),
-                      _buildLegendItem(Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary, 'Pilihan Anda'),
-                      const SizedBox(height: 6),
-                      _buildLegendItem(Colors.red.shade300, Colors.red.shade400, 'Sudah Terisi'),
-                    ],
-                  ),
+                const Text(
+                  'Keterangan Kursi:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-
-                // Minimap Seat Selection (Kanan - Mengikuti Permintaan User)
-                _buildMinimap(),
+                const SizedBox(height: 8),
+                _buildLegendItem(Colors.white, Colors.grey.shade400, 'Tersedia'),
+                const SizedBox(height: 6),
+                _buildLegendItem(Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary, 'Pilihan Anda'),
+                const SizedBox(height: 6),
+                _buildLegendItem(Colors.red.shade300, Colors.red.shade400, 'Sudah Terisi'),
               ],
             ),
           ),
@@ -199,20 +185,7 @@ class _SeatSelectionState extends State<SeatSelection> {
           Column(
             children: [
               // Efek Cahaya Layar
-              Container(
-                height: 6,
-                width: MediaQuery.of(context).size.width * 0.7,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.0),
-                      Theme.of(context).colorScheme.primary.withOpacity(0.6),
-                      Theme.of(context).colorScheme.primary.withOpacity(0.0),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.elliptical(150, 6)),
-                ),
-              ),
+            
               const SizedBox(height: 4),
               // Teks Layar
               Text(
@@ -420,63 +393,6 @@ class _SeatSelectionState extends State<SeatSelection> {
     );
   }
 
-  // Widget Minimap Seat Selection (Tersinkronisasi 100%)
-  Widget _buildMinimap() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300, width: 1.5),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'MINIMAP',
-            style: TextStyle(
-              fontSize: 9, 
-              fontWeight: FontWeight.bold, 
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Garis Layar Bioskop Mini
-          Container(
-            height: 2, 
-            width: 50, 
-            color: Colors.grey.shade500,
-          ),
-          const SizedBox(height: 8),
-          
-          // Render kursi mini per baris
-          for (var row in _rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 1.5),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (int col = 1; col <= _columns; col++) ...[
-                    // Lorong mini
-                    if (col == 5) const SizedBox(width: 4),
-
-                    // Kotak kursi mini (6x6)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: _getSeatColor('$row$col', isMinimap: true),
-                        borderRadius: BorderRadius.circular(1.5),
-                      ),
-                    ),
-                  ]
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   // Widget Kursi Utama Interaktif
   Widget _buildInteractiveSeat(String row, int col) {
