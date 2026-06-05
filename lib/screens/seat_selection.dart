@@ -202,7 +202,7 @@ class _SeatSelectionState extends State<SeatSelection> {
 
           const SizedBox(height: 24),
 
-          // 4. Grid Kursi Bioskop Interaktif
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),

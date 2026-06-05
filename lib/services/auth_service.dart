@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   // Get current user stream
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -21,9 +22,18 @@ class AuthService {
         password: password,
       );
       
-      // Update user profile dengan nama
-      await userCredential.user?.updateDisplayName(name);
+      // Ini buat insert data singup user ke firestore collection tur
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid':userCredential.user!.uid,
+        'name':name,
+        'email':email,
+        'role':'customer',
+        'created_at': FieldValue.serverTimestamp(),
+      });
       
+      
+      await userCredential.user?.updateDisplayName(name);
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       rethrow;
