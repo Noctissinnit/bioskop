@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo/Title
                 Text(
-                  'Aplikasi Bioskop',
+                  'Nontonin',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

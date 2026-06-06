@@ -4,13 +4,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String _usersCollection = 'users';
-
   // Get current user stream
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   // Get current user
   User? get currentUser => _firebaseAuth.currentUser;
+
+  // Get Roles Collection
+  Future<Map<String, dynamic>?> getRolesDetails(String roleId) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('roles')
+          .doc(roleId)
+          .get();
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      print("Error fetching role: $e");
+      return null;
+    }
+  }
 
   // Sign up with email and password
   Future<UserCredential> signUp({
@@ -19,24 +34,20 @@ class AuthService {
     required String name,
   }) async {
     try {
-      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
-      // Update user profile dengan nama
+      UserCredential userCredential = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // Ini buat insert data singup user ke firestore collection tur
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'name': name,
+        'email': email,
+        'roleId': 'customer_id',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
       await userCredential.user?.updateDisplayName(name);
-      
-      // Simpan user data ke Firestore dengan role 'user'
-      if (userCredential.user != null) {
-        await _firestore.collection(_usersCollection).doc(userCredential.user!.uid).set({
-          'email': email,
-          'name': name,
-          'role': 'user', // Default role adalah 'user'
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       rethrow;
@@ -49,10 +60,8 @@ class AuthService {
     required String password,
   }) async {
     try {
-      UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await _firebaseAuth
+          .signInWithEmailAndPassword(email: email, password: password);
       return userCredential;
     } on FirebaseAuthException catch (e) {
       rethrow;
