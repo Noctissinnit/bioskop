@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/admin_screen.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +53,8 @@ class _MyAppState extends State<MyApp> {
           }
 
           if (snapshot.hasData) {
-            // User is logged in
-            return const HomeScreen();
+            // User is logged in, determine screen by role
+            return RoleRoutingWrapper(user: snapshot.data!);
           } else {
             // User is not logged in
             if (_isLogin) {
@@ -68,5 +70,65 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
+  }
+}
+
+class RoleRoutingWrapper extends StatefulWidget {
+  final User user;
+  const RoleRoutingWrapper({super.key, required this.user});
+
+  @override
+  State<RoleRoutingWrapper> createState() => _RoleRoutingWrapperState();
+}
+
+class _RoleRoutingWrapperState extends State<RoleRoutingWrapper> {
+  final _authService = AuthService();
+  String? _role;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRole();
+  }
+
+  void _checkRole() async {
+    try {
+      String? role = await _authService.getUserRole(widget.user.uid);
+      if (role == null && widget.user.email != null && widget.user.email!.trim().toLowerCase().startsWith('admin')) {
+        role = 'admin';
+        await _authService.setUserRole(widget.user.uid, 'admin');
+      }
+      if (mounted) {
+        setState(() {
+          _role = role;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _role = null;
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_role == 'admin') {
+      return const AdminScreen();
+    } else {
+      return const HomeScreen();
+    }
   }
 }

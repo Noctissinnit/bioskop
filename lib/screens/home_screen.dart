@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _movieService = MovieService();
   String _selectedGenre = 'Semua';
   String? _userRole;
+  bool _isLoading = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
 

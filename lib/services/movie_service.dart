@@ -9,15 +9,16 @@ class MovieService {
   Stream<List<Movie>> getAllMoviesStream() {
     return _firestore.collection(_moviesCollection).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
+        final data = doc.data();
         return Movie(
           id: doc.id,
-          title: doc['title'] ?? '',
-          description: doc['description'] ?? '',
-          posterUrl: doc['posterUrl'] ?? '',
-          rating: doc['rating'] ?? '0',
-          genre: doc['genre'] ?? '',
-          duration: doc['duration'] ?? '',
-          showtimes: List<String>.from(doc['showtimes'] ?? []),
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          posterUrl: data['posterUrl'] ?? '',
+          rating: data['rating'] ?? '0',
+          genre: data['genre'] ?? '',
+          duration: data['duration'] ?? '',
+          showtimes: List<String>.from(data['showtimes'] ?? []),
         );
       }).toList();
     });
@@ -33,15 +34,16 @@ class MovieService {
 
       if (!doc.exists) return null;
 
+      final data = doc.data() as Map<String, dynamic>?;
       return Movie(
         id: doc.id,
-        title: doc['title'] ?? '',
-        description: doc['description'] ?? '',
-        posterUrl: doc['posterUrl'] ?? '',
-        rating: doc['rating'] ?? '0',
-        genre: doc['genre'] ?? '',
-        duration: doc['duration'] ?? '',
-        showtimes: List<String>.from(doc['showtimes'] ?? []),
+        title: data?['title'] ?? '',
+        description: data?['description'] ?? '',
+        posterUrl: data?['posterUrl'] ?? '',
+        rating: data?['rating'] ?? '0',
+        genre: data?['genre'] ?? '',
+        duration: data?['duration'] ?? '',
+        showtimes: List<String>.from(data?['showtimes'] ?? []),
       );
     } catch (e) {
       rethrow;
@@ -122,15 +124,16 @@ class MovieService {
           await _firestore.collection(_moviesCollection).get();
 
       return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
         return Movie(
           id: doc.id,
-          title: doc['title'] ?? '',
-          description: doc['description'] ?? '',
-          posterUrl: doc['posterUrl'] ?? '',
-          rating: doc['rating'] ?? '0',
-          genre: doc['genre'] ?? '',
-          duration: doc['duration'] ?? '',
-          showtimes: List<String>.from(doc['showtimes'] ?? []),
+          title: data?['title'] ?? '',
+          description: data?['description'] ?? '',
+          posterUrl: data?['posterUrl'] ?? '',
+          rating: data?['rating'] ?? '0',
+          genre: data?['genre'] ?? '',
+          duration: data?['duration'] ?? '',
+          showtimes: List<String>.from(data?['showtimes'] ?? []),
         );
       }).toList();
     } catch (e) {
@@ -148,15 +151,16 @@ class MovieService {
           .get();
 
       return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
         return Movie(
           id: doc.id,
-          title: doc['title'] ?? '',
-          description: doc['description'] ?? '',
-          posterUrl: doc['posterUrl'] ?? '',
-          rating: doc['rating'] ?? '0',
-          genre: doc['genre'] ?? '',
-          duration: doc['duration'] ?? '',
-          showtimes: List<String>.from(doc['showtimes'] ?? []),
+          title: data?['title'] ?? '',
+          description: data?['description'] ?? '',
+          posterUrl: data?['posterUrl'] ?? '',
+          rating: data?['rating'] ?? '0',
+          genre: data?['genre'] ?? '',
+          duration: data?['duration'] ?? '',
+          showtimes: List<String>.from(data?['showtimes'] ?? []),
         );
       }).toList();
     } catch (e) {
@@ -172,15 +176,16 @@ class MovieService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
+        final data = doc.data();
         return Movie(
           id: doc.id,
-          title: doc['title'] ?? '',
-          description: doc['description'] ?? '',
-          posterUrl: doc['posterUrl'] ?? '',
-          rating: doc['rating'] ?? '0',
-          genre: doc['genre'] ?? '',
-          duration: doc['duration'] ?? '',
-          showtimes: List<String>.from(doc['showtimes'] ?? []),
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          posterUrl: data['posterUrl'] ?? '',
+          rating: data['rating'] ?? '0',
+          genre: data['genre'] ?? '',
+          duration: data['duration'] ?? '',
+          showtimes: List<String>.from(data['showtimes'] ?? []),
         );
       }).toList();
     });

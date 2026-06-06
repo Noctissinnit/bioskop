@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String _usersCollection = 'users';
   // Get current user stream
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -37,12 +38,16 @@ class AuthService {
       UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Ini buat insert data singup user ke firestore collection tur
+      // Tentukan role berdasarkan email (diawali 'admin' -> admin, lainnya -> customer)
+      final String role = email.trim().toLowerCase().startsWith('admin') ? 'admin' : 'customer';
+
+      // Ini buat insert data singup user ke firestore collection
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         'name': name,
         'email': email,
-        'roleId': 'customer_id',
+        'role': role,
+        'roleId': role == 'admin' ? 'admin_id' : 'customer_id',
         'created_at': FieldValue.serverTimestamp(),
       });
 
@@ -100,7 +105,8 @@ class AuthService {
     try {
       DocumentSnapshot doc = await _firestore.collection(_usersCollection).doc(userId).get();
       if (doc.exists) {
-        return doc['role'] as String?;
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?['role'] as String?;
       }
       return null;
     } catch (e) {
@@ -121,9 +127,9 @@ class AuthService {
   // Set user role (Admin only - untuk promote user ke admin)
   Future<void> setUserRole(String userId, String role) async {
     try {
-      await _firestore.collection(_usersCollection).doc(userId).update({
+      await _firestore.collection(_usersCollection).doc(userId).set({
         'role': role,
-      });
+      }, SetOptions(merge: true));
     } catch (e) {
       rethrow;
     }
@@ -133,12 +139,13 @@ class AuthService {
   Stream<List<Map<String, dynamic>>> getAllUsersStream() {
     return _firestore.collection(_usersCollection).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
+        final data = doc.data();
         return {
           'uid': doc.id,
-          'email': doc['email'] ?? '',
-          'name': doc['name'] ?? '',
-          'role': doc['role'] ?? 'user',
-          'createdAt': doc['createdAt'],
+          'email': data['email'] ?? '',
+          'name': data['name'] ?? '',
+          'role': data['role'] ?? 'user',
+          'createdAt': data['createdAt'],
         };
       }).toList();
     });
