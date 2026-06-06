@@ -81,6 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
+
   // Dummy data filmnya disini sam 
   final List<Movie> _allMovies = [
     Movie(
