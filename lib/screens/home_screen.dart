@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/movie_service.dart';
 import '../models/movie.dart';
 import 'movie_detail_screen.dart';
+import 'admin_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,10 +15,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
-  bool _isLoading = false;
+  final _movieService = MovieService();
   String _selectedGenre = 'Semua';
+  String? _userRole;
+  bool _isLoading = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  void _loadUserRole() async {
+    try {
+      final role = await _authService.getCurrentUserRole();
+      setState(() {
+        _userRole = role;
+      });
+    } catch (e) {
+      // Handle error silently
+    }
+  }
 
   void _showEditProfileDialog(BuildContext context, User? user) {
     _usernameController.text = user?.displayName ?? '';
@@ -81,76 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  List<Movie> _filterMovies(List<Movie> movies) {
+    List<Movie> filtered = movies;
 
-
-  // Dummy data filmnya disini sam 
-  final List<Movie> _allMovies = [
-    Movie(
-      id: '1',
-      title: 'Dune: Part Two',
-      description: 'Paul Atreides bermakna untuk membalas dendam kepada para pengkhianat keluarganya.',
-      posterUrl: '🎬',
-      rating: '8.5',
-      genre: 'Sci-Fi',
-      duration: '166 min',
-      showtimes: ['10:00', '13:30', '16:45', '19:30', '22:00'],
-    ),
-    Movie(
-      id: '2',
-      title: 'Oppenheimer',
-      description: 'Kisah nyata tentang pembuatan bom atom oleh J. Robert Oppenheimer.',
-      posterUrl: '🎬',
-      rating: '8.8',
-      genre: 'Drama',
-      duration: '180 min',
-      showtimes: ['11:00', '14:30', '17:45', '20:30'],
-    ),
-    Movie(
-      id: '3',
-      title: 'Barbie',
-      description: 'Barbie dan Ken memulai petualangan baru di dunia nyata.',
-      posterUrl: '🎬',
-      rating: '7.9',
-      genre: 'Komedi',
-      duration: '114 min',
-      showtimes: ['10:30', '12:45', '15:00', '17:30', '19:45', '21:45'],
-    ),
-    Movie(
-      id: '4',
-      title: 'Spider-Man: Beyond the Spider-Verse',
-      description: 'Miles Morales kembali untuk petualangan Spider-Man berikutnya.',
-      posterUrl: '🎬',
-      rating: '8.3',
-      genre: 'Action',
-      duration: '140 min',
-      showtimes: ['10:15', '12:45', '15:15', '17:45', '20:15', '22:30'],
-    ),
-    Movie(
-      id: '5',
-      title: 'Killers of the Flower Moon',
-      description: 'Kisah kriminal nyata di Oklahoma pada tahun 1920an.',
-      posterUrl: '🎬',
-      rating: '8.2',
-      genre: 'Drama',
-      duration: '206 min',
-      showtimes: ['14:00', '18:00', '21:00'],
-    ),
-    Movie(
-      id: '6',
-      title: 'The Nun II',
-      description: 'Kembalinya entitas supernatural yang menakutkan.',
-      posterUrl: '🎬',
-      rating: '6.5',
-      genre: 'Horror',
-      duration: '110 min',
-      showtimes: ['19:00', '21:30', '23:00'],
-    ),
-  ];
-
-  List<Movie> get _filteredMovies {
-    List<Movie> filtered = _allMovies;
-
-    // Filter genra
+    // Filter by genre
     if (_selectedGenre != 'Semua') {
       filtered = filtered.where((movie) => movie.genre == _selectedGenre).toList();
     }
@@ -165,8 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return filtered;
   }
 
-  List<String> get _genres {
-    return ['Semua', ...{..._allMovies.map((m) => m.genre)}];
+  List<String> _getGenres(List<Movie> movies) {
+    return ['Semua', ...{...movies.map((m) => m.genre)}];
   }
 
   void _logout() async {
@@ -213,6 +168,20 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Aplikasi Bioskop'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          // Admin button (jika user adalah admin)
+          if (_userRole == 'admin')
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings),
+              tooltip: 'Admin Panel',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminScreen(),
+                  ),
+                );
+              },
+            ),
           PopupMenuButton<String>(
             itemBuilder: (context) => [
               PopupMenuItem<String>(
@@ -234,6 +203,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.grey,
                       ),
                     ),
+                    if (_userRole != null)
+                      Text(
+                        'Role: $_userRole',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -257,127 +235,144 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header dengan greeting
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hi ${user?.displayName ?? 'Pengguna'}! 👋',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Pesan tiket bioskop favorit Anda',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
-              ),
-            ),
+      body: StreamBuilder<List<Movie>>(
+        stream: _movieService.getAllMoviesStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  setState(() {});
-                },
-                decoration: InputDecoration(
-                  hintText: 'Cari film...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-            // Genre Filter
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _genres.map((genre) {
-                    bool isSelected = _selectedGenre == genre;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: FilterChip(
-                        label: Text(genre),
-                        selected: isSelected,
-                        onSelected: (value) {
-                          setState(() {
-                            _selectedGenre = genre;
-                          });
-                        },
+          final allMovies = snapshot.data ?? [];
+          final filteredMovies = _filterMovies(allMovies);
+          final genres = _getGenres(allMovies);
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // Header dengan greeting
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hi ${user?.displayName ?? 'Pengguna'}! 👋',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Movie Grid
-            if (_filteredMovies.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.movie_filter,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Film tidak ditemukan',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pesan tiket bioskop favorit Anda',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                      ),
+                    ],
                   ),
-                  itemCount: _filteredMovies.length,
-                  itemBuilder: (context, index) {
-                    final movie = _filteredMovies[index];
-                    return _buildMovieCard(context, movie);
-                  },
                 ),
-              ),
-            const SizedBox(height: 24),
-          ],
-        ),
+
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cari film...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Genre Filter
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: genres.map((genre) {
+                        bool isSelected = _selectedGenre == genre;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: FilterChip(
+                            label: Text(genre),
+                            selected: isSelected,
+                            onSelected: (value) {
+                              setState(() {
+                                _selectedGenre = genre;
+                              });
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Movie Grid
+                if (filteredMovies.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.movie_filter,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Film tidak ditemukan',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemCount: filteredMovies.length,
+                      itemBuilder: (context, index) {
+                        final movie = filteredMovies[index];
+                        return _buildMovieCard(context, movie);
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
