@@ -1,4 +1,7 @@
+import 'package:bioskop/models/reservations.dart';
+import 'package:bioskop/services/reservation_service.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/movie.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -20,29 +23,65 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  final ReservationService _reservationService = ReservationService();
   bool _isLoading = false;
   bool _isPaid = false;
 
   void _processPayment() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu untuk menyelesaikan reservasi.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-      _isPaid = true;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pembayaran berhasil. Tiket Anda telah diproses.'),
-        backgroundColor: Colors.green,
-      ),
+    final reservation = Reservation(
+      userId: currentUser.uid,
+      movieId: widget.movie.id,
+      movieTitle: widget.movie.title,
+      seats: widget.selectedSeats,
+      totalPrice: widget.totalPrice,
+      showtime: widget.showtime,
+      createdAt: DateTime.now(),
     );
+
+    try {
+      await _reservationService.addReservation(reservation);
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _isPaid = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pembayaran berhasil. Reservasi tersimpan.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan saat menyimpan reservasi: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

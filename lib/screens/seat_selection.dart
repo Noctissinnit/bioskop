@@ -6,11 +6,7 @@ class SeatSelection extends StatefulWidget {
   final Movie movie;
   final String showtime;
 
-  const SeatSelection({
-    super.key,
-    required this.movie,
-    required this.showtime,
-  });
+  const SeatSelection({super.key, required this.movie, required this.showtime});
 
   @override
   State<SeatSelection> createState() => _SeatSelectionState();
@@ -22,20 +18,21 @@ class _SeatSelectionState extends State<SeatSelection> {
 
   // Daftar kursi yang sudah terisi / terbooking secara statis
   final List<String> _occupiedSeats = [
-    'A3', 'A4', 
-    'B5', 'B6', 
-    'C2', 
-    'D7', 'D8', 
-    'E1', 'E4'
+    'A3',
+    'A4',
+    'B5',
+    'B6',
+    'C2',
+    'D7',
+    'D8',
+    'E1',
+    'E4',
   ];
 
-  // Harga tiket bioskop statis per kursi
   final int _ticketPrice = 45000;
 
-  // Daftar baris kursi bioskop (A sampai F)
   final List<String> _rows = ['A', 'B', 'C', 'D', 'E', 'F'];
-  
-  // Jumlah kolom kursi bioskop (1 sampai 8)
+
   final int _columns = 8;
 
   // Fungsi pembantu untuk mendapatkan warna kursi berdasarkan statusnya
@@ -84,6 +81,22 @@ class _SeatSelectionState extends State<SeatSelection> {
     });
   }
 
+  void _navigateToPayment() {
+    int total = _selectedSeats.length * _ticketPrice;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentScreen(
+          movie: widget.movie,
+          showtime: widget.showtime,
+          selectedSeats: _selectedSeats,
+          totalPrice: total,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     int totalPrice = _selectedSeats.length * _ticketPrice;
@@ -100,8 +113,13 @@ class _SeatSelectionState extends State<SeatSelection> {
         children: [
           // 1. Informasi Film Ringkas di Bagian Atas
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            color: Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withOpacity(0.3),
             child: Row(
               children: [
                 // Icon Tiket Kecil
@@ -139,11 +157,19 @@ class _SeatSelectionState extends State<SeatSelection> {
                 ),
                 // Jam Tayang
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     widget.showtime,
@@ -170,11 +196,23 @@ class _SeatSelectionState extends State<SeatSelection> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildLegendItem(Colors.white, Colors.grey.shade400, 'Tersedia'),
+                _buildLegendItem(
+                  Colors.white,
+                  Colors.grey.shade400,
+                  'Tersedia',
+                ),
                 const SizedBox(height: 6),
-                _buildLegendItem(Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary, 'Pilihan Anda'),
+                _buildLegendItem(
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary,
+                  'Pilihan Anda',
+                ),
                 const SizedBox(height: 6),
-                _buildLegendItem(Colors.red.shade300, Colors.red.shade400, 'Sudah Terisi'),
+                _buildLegendItem(
+                  Colors.red.shade300,
+                  Colors.red.shade400,
+                  'Sudah Terisi',
+                ),
               ],
             ),
           ),
@@ -185,7 +223,6 @@ class _SeatSelectionState extends State<SeatSelection> {
           Column(
             children: [
               // Efek Cahaya Layar
-            
               const SizedBox(height: 4),
               // Teks Layar
               Text(
@@ -201,7 +238,6 @@ class _SeatSelectionState extends State<SeatSelection> {
           ),
 
           const SizedBox(height: 24),
-
 
           Expanded(
             child: SingleChildScrollView(
@@ -333,22 +369,7 @@ class _SeatSelectionState extends State<SeatSelection> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: _selectedSeats.isEmpty
-                            ? null
-                            : () {
-                                // Arahkan ke PaymentScreen sesuai alur bisnis flowchart
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PaymentScreen(
-                                      movie: widget.movie,
-                                      showtime: widget.showtime,
-                                      selectedSeats: _selectedSeats,
-                                      totalPrice: totalPrice,
-                                    ),
-                                  ),
-                                );
-                              },
+                        onPressed: _selectedSeats.isEmpty ? null : _navigateToPayment,
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -393,7 +414,6 @@ class _SeatSelectionState extends State<SeatSelection> {
     );
   }
 
-
   // Widget Kursi Utama Interaktif
   Widget _buildInteractiveSeat(String row, int col) {
     String seatCode = '$row$col';
@@ -412,10 +432,12 @@ class _SeatSelectionState extends State<SeatSelection> {
           boxShadow: _selectedSeats.contains(seatCode)
               ? [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.3),
                     blurRadius: 4,
                     spreadRadius: 1,
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -428,8 +450,8 @@ class _SeatSelectionState extends State<SeatSelection> {
               color: _occupiedSeats.contains(seatCode)
                   ? Colors.white
                   : _selectedSeats.contains(seatCode)
-                      ? Colors.white
-                      : Colors.black,
+                  ? Colors.white
+                  : Colors.black,
             ),
           ),
         ),
