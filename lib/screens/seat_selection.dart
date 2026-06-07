@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/movie.dart';
 import 'payment_screen.dart';
@@ -13,26 +14,34 @@ class SeatSelection extends StatefulWidget {
 }
 
 class _SeatSelectionState extends State<SeatSelection> {
-  // Menyimpan daftar kursi yang dipilih oleh user
-  final List<String> _selectedSeats = [];
 
-  // Daftar kursi yang sudah terisi / terbooking secara statis
-  final List<String> _occupiedSeats = [
-    'A3',
-    'A4',
-    'B5',
-    'B6',
-    'C2',
-    'D7',
-    'D8',
-    'E1',
-    'E4',
-  ];
+  List<String> _selectedSeats = [];
+  List<String> _occupiedSeats= [];
+  bool _isLoading = true;
+
+  @override
+  void initState()
+  {
+    super.initState();
+    _fetchOccupiedSeats();
+  }
+  Future<void> _fetchOccupiedSeats() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('reservations').where('movieId', isEqualTo: widget.movie.id).where('showtime', isEqualTo: widget.showtime).get();
+
+    List<String> takenSeats = [];
+    for(var doc in snapshot.docs){
+      List<dynamic> seats = doc['seats'];
+      takenSeats.addAll(seats.map((s) => s.toString()));
+    }
+    
+    setState(() {
+      _occupiedSeats = takenSeats;
+      _isLoading = false;
+    });
+  }
 
   final int _ticketPrice = 45000;
-
   final List<String> _rows = ['A', 'B', 'C', 'D', 'E', 'F'];
-
   final int _columns = 8;
 
   // Fungsi pembantu untuk mendapatkan warna kursi berdasarkan statusnya
