@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Aplikasi Bioskop'),
+        title: const Text('Nontonin'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // Admin button (jika user adalah admin)
@@ -260,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hi ${user?.displayName ?? 'Pengguna'}! 👋',
+                        'Welcome ${user?.displayName} !',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
